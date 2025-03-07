@@ -1,15 +1,37 @@
 ---
-- name: Trigger Job on File Event
+- name: Example ruleset 1
   hosts: all
   sources:
-    - name: watch_for_file
-      ansible.eda.file_watch:
-        paths:
-          - "/tmp/run_job.signal"
+    - name: Source 1
+      ansible.eda.url_check:
+        urls:
+          - https://example.com/heartbeat/
+        delay: 10
+
   rules:
-    - name: Run Job Template on Controller
-      condition: event.type == "file_created"
+    - name: Rule 1
+      condition: event.status == "down"
       action:
         run_job_template:
-          name: "My_Ansible_Job"
+          name: "Reload server"
+          organization: "Default"
+
+- name: Example ruleset 2
+  hosts: database
+  sources:
+    - name: PG Status
+      ansible.eda.webhook:
+        host: https://source.example.com/api/webhook/
+        port: 443
+        keyfile: /path/to/keyfile
+
+  rules:
+    - name: Rule 2
+      conditinon:
+        any:
+          - event.payload.connections_free <= 10
+          - event.payload.mem_free < 2048
+      action:
+        run_job_template:
+          name: "Restart PostgreSQL server"
           organization: "Default"
