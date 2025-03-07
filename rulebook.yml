@@ -1,0 +1,15 @@
+---
+- name: Trigger Job on File Event
+  hosts: all
+  sources:
+    - name: watch_for_file
+      ansible.eda.file_watch:
+        paths:
+          - "/tmp/run_job.signal"
+  rules:
+    - name: Run Job Template on Controller
+      condition: event.type == "file_created"
+      action:
+        run_job_template:
+          name: "My_Ansible_Job"
+          organization: "Default"
